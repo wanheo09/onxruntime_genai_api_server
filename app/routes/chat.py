@@ -19,14 +19,18 @@ async def stream_chat_response(
     created: int
 ):
     """SSE 스트리밍 응답 생성"""
-    async for chunk in inference_service.generate_chat_completion(
+    # generate_chat_completion is an async function that returns an async generator
+    # when `stream=True`. We must await it first to obtain the generator before
+    # iterating.
+    gen = await inference_service.generate_chat_completion(
         messages=[msg.model_dump() for msg in request.messages],
         temperature=request.temperature,
         max_tokens=request.max_tokens,
         top_p=request.top_p,
         stream=True,
-        stop=request.stop
-    ):
+        stop=request.stop,
+    )
+    async for chunk in gen:
         data = {
             "id": completion_id,
             "object": "chat.completion.chunk",
