@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: onnx-genai-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/models/phi-3.5-mini
+      - MODEL_ID=phi-3.5-mini
+      - SERVER_PORT=8000
+      - MAX_CONCURRENT_REQUESTS=10
+      - DEFAULT_MAX_TOKENS=1024
+      - DEFAULT_TEMPERATURE=0.7
+      - CORS_ORIGINS=*
+      - LOG_LEVEL=INFO
+    volumes:
+      - /home/wan/Downloads/models/Phi-3.5-mini-instruct-onnx/cpu_and_mobile/cpu-int4-awq-block-128-acc-level-4:/models/phi-3.5-mini:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

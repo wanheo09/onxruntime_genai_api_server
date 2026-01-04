@@ -40,6 +40,13 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# 미들웨어 등록 (순서 중요: 먼저 등록된 것이 나중에 실행)
+from app.middleware.logging_middleware import LoggingMiddleware
+from app.middleware.rate_limiter import RateLimiterMiddleware
+
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimiterMiddleware, max_concurrent=settings.MAX_CONCURRENT_REQUESTS)
+
 # CORS 설정
 origins = settings.CORS_ORIGINS.split(",") if settings.CORS_ORIGINS != "*" else ["*"]
 app.add_middleware(
