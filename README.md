@@ -181,7 +181,7 @@ onxruntime_genai_api_server/
 
 ## 라이선스
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 참고 문서
 
