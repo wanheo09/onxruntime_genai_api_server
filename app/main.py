@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import logging
 
 from app.config.settings import settings
 from app.core.exceptions import APIException
+from app.core.model_loader import ModelLoader
 from app.routes import models, chat, completions
 from app.utils.logger import setup_logging
 
@@ -12,10 +14,30 @@ from app.utils.logger import setup_logging
 setup_logging(settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """서버 시작/종료 이벤트"""
+    # 시작
+    logger.info("Starting ONNX Runtime GenAI API Server...")
+    try:
+        await ModelLoader.initialize(settings.MODEL_PATH)
+        logger.info(f"Model loaded successfully from {settings.MODEL_PATH}")
+    except Exception as e:
+        logger.error(f"Failed to load model: {e}")
+        raise
+
+    yield
+
+    # 종료
+    logger.info("Shutting down server...")
+
+
 app = FastAPI(
     title="ONNX Runtime GenAI OpenAI-Compatible API",
     version="1.0.0",
-    description="OpenAI-compatible API server using ONNX Runtime GenAI"
+    description="OpenAI-compatible API server using ONNX Runtime GenAI",
+    lifespan=lifespan
 )
 
 # CORS 설정
